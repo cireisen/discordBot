@@ -80,21 +80,21 @@ namespace discordBot
                         .AddOption("Confirmed", "4", "We are gaming")
                         .AddOption("Excellent", "5", "It is renowned as gaming nation wide", new Emoji("🔥"));
 
-                    // We use UpdateAsync to update the message and its original content and components.
-                    //await arg.UpdateAsync(x =>
-                    //{
-                    //    x.Content = $"Thank you {arg.User.Mention} for rating us {value}/5 on the gaming scale";
-                    //    x.Components = new ComponentBuilder().WithSelectMenu(menu).Build();
-                    //});
+                    //We use UpdateAsync to update the message and its original content and components.
+                    await arg.UpdateAsync(x =>
+                    {
+                        x.Content = $"Thank you {arg.User.Mention} for rating us {value}/5 on the gaming scale";
+                        x.Components = new ComponentBuilder().WithSelectMenu(menu).Build();
+                    });
 
                     var embed = new EmbedBuilder();
 
                     var buttons = new EmbedBuilder();
 
-                    await arg.UpdateAsync(x =>
-                    {
+                    //await arg.UpdateAsync(x =>
+                    //{
                         
-                    });
+                    //});
                     break;
             }
         }
