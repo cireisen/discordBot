@@ -1,10 +1,13 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.Net;
 using Discord.WebSocket;
+using discordBot.Arknights;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,6 +104,22 @@ namespace discordBot
 
         private async Task client_ButtonExecuted(SocketMessageComponent arg)
         {
+            string id = arg.Data.CustomId;
+
+            var info = id.Split('_');
+
+            //SocketInteraction a = arg;
+
+            switch (info[0])
+            {
+                case "mrfz":
+                    await ToolBoxMain.ReadCommand(arg, info[1]);
+                    break;
+                case "main":
+                    break;
+
+            }
+
             await arg.RespondAsync(arg.Data.CustomId);
         }
 
@@ -131,27 +150,23 @@ namespace discordBot
 
         public async Task CreateMenu(SocketSlashCommand command)
         {
-            var builder = new SelectMenuBuilder()
+            var embed = new EmbedBuilder()
             {
-                CustomId = "menu1",
-                Placeholder = "Select Someting",
-                MaxValues = 1,
-                MinValues = 1
-
+                Title = "우동게 봇 메인입니다.",
+                ThumbnailUrl = @"https://avatars.githubusercontent.com/u/28528895?v=4",
+                Description = "아직 개발중"
             };
 
-            builder.AddOption("Meh", "1", "Its not gaming.")
-         .AddOption("Ish", "2", "Some would say that this is gaming.")
-         .AddOption("Moderate", "3", "It could pass as gaming")
-         .AddOption("Confirmed", "4", "We are gaming")
-         .AddOption("Excellent", "5", "It is renowned as gaming nation wide", new Emoji("🔥"));
+            embed.AddField("원하시는 기능을 선택하세요", "응애");
 
-            var components = new ComponentBuilder()
-         .WithSelectMenu(builder);
+            var builder = new ComponentBuilder()
+                .WithButton("명일방주", "mrfz_main")
+                .WithButton("쓰레기게임", "trhg_main");
+            
 
-            await command.RespondAsync("On a scale of one to five, how gaming is this?", components: components.Build(), ephemeral: true);
+            await command.RespondAsync(embed:  embed.Build() , components: builder.Build());
         }
 
-
+        
     }
 }
