@@ -14,7 +14,7 @@ namespace discordBot
         public static ulong ControlGuildID = 0;
         public static ulong ControlChannelID = 0;
         public static string path = AppDomain.CurrentDomain.BaseDirectory + "\\";
-
+        public static string commandDivisionLine = "=================================================================================================";
         public static void StartConfig()
         {
             using(StreamReader file = File.OpenText(path + @"resource\Config.json"))

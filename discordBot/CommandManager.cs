@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace discordBot
 {
@@ -118,23 +119,36 @@ namespace discordBot
             var info = id.Split('_');
 
             //SocketInteraction a = arg;
-
-            switch (info[0])
+            try
             {
-                case "main":
-                    break;
-                    //방주
-                case "mrfz":
-                    await ToolBoxMain.ReadCommand(arg, info[1]);
-                    break;
-                    //마작
-                case "mahj":
-                    await MahjongMain.ReadCommand(arg, info[1]);
-                    break;
+                switch (info[0])
+                {
+                    case "main":
+                        break;
+                        //방주
+                    case "mrfz":
+                        await ToolBoxMain.ReadCommand(arg, info[1]);
+                        break;
+                        //마작
+                    case "mahj":
+                        await MahjongMain.ReadCommand(arg, info[1]);
+                        break;
 
-            }
+                }
 
             await arg.RespondAsync(arg.Data.CustomId);
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine($"ErrorOccured while Execute {id} SlashCommand in {arg.GuildId}, {arg.ChannelId}");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.ResetColor();
+            }
         }
 
         private async Task client_SlashCommandExecuted(SocketSlashCommand command)
@@ -144,23 +158,37 @@ namespace discordBot
             var commandData= name.Split('_');
 
             //switch(commandData[0])
-            switch(name)
+            try
             {
-                case "first-global-command":
-                    await command.RespondAsync($"You executed {command.Data.Name}");
-                    break;
-                case "buttontest":
-                    await ButtonTest(command);
-                    break;
-                case "createmenu":
-                    await CreateMenu(command);
-                    break;
-                case "mrfz":
-                    await ToolBoxMain.ReadCommand(command, commandData[1]);
-                    break;
-                case "startgame":
-                    await MahjongMain.ReadCommand(command, "mahj_" + name);
-                    break;
+                switch(name)
+                {
+                    case "first-global-command":
+                        await command.RespondAsync($"You executed {command.Data.Name}");
+                        break;
+                    case "buttontest":
+                        await ButtonTest(command);
+                        break;
+                    case "createmenu":
+                        await CreateMenu(command);
+                        break;
+                    case "mrfz":
+                        await ToolBoxMain.ReadCommand(command, commandData[1]);
+                        break;
+                    case "startgame":
+                        await MahjongMain.ReadCommand(command, name);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine($"ErrorOccured while Execute {name} SlashCommand in {command.GuildId}, {command.ChannelId}");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.ResetColor();
             }
 
         }
