@@ -4,6 +4,7 @@ using Discord.Interactions;
 using Discord.Net;
 using Discord.WebSocket;
 using discordBot.Arknights;
+using discordBot.Mahjong;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -112,10 +113,15 @@ namespace discordBot
 
             switch (info[0])
             {
+                case "main":
+                    break;
+                    //방주
                 case "mrfz":
                     await ToolBoxMain.ReadCommand(arg, info[1]);
                     break;
-                case "main":
+                    //마작
+                case "mahj":
+                    await MahjongMain.ReadCommand(arg, info[1]);
                     break;
 
             }
@@ -125,7 +131,11 @@ namespace discordBot
 
         private async Task client_SlashCommandExecuted(SocketSlashCommand command)
         {
-            switch(command.CommandName)
+            string name = command.CommandName;
+
+            var commandData= name.Split('_');
+
+            switch(commandData[0])
             {
                 case "first-global-command":
                     await command.RespondAsync($"You executed {command.Data.Name}");
@@ -135,6 +145,12 @@ namespace discordBot
                     break;
                 case "createmenu":
                     await CreateMenu(command);
+                    break;
+                case "mrfz":
+                    await ToolBoxMain.ReadCommand(command, commandData[1]);
+                    break;
+                case "mahj":
+                    await MahjongMain.ReadCommand(command, commandData[1]);
                     break;
             }
 

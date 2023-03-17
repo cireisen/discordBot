@@ -37,7 +37,7 @@ namespace discordBot.Arknights
             if(command.GetType() == typeof(SocketMessageComponent))
             {
                 SocketMessageComponent msg = (SocketMessageComponent)command;
-                await msg.UpdateAsync(x =>
+                await msg.UpdateAsync(x => 
                 {
                     x.Embed = embed.Build();
                     x.Components = builder.Build();
