@@ -26,6 +26,7 @@ namespace discordBot // Note: actual namespace depends on the project name.
 
         private async Task StartAsync()
         {
+            Config.StartConfig();
             string botToken = Config.Token;
 
             if (string.IsNullOrEmpty(botToken))
