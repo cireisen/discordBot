@@ -40,11 +40,19 @@ namespace discordBot
             menuCommand.WithName("createmenu");
             menuCommand.WithDescription("CreateMainMenu");
 
+            var mahjongCommand = new SlashCommandBuilder();
+
+            mahjongCommand.WithName("startgame");
+            mahjongCommand.WithDescription("마작 게임 시작");
+
+            mahjongCommand.AddOption("playercount", ApplicationCommandOptionType.Integer, "플레이어수", true, minValue: 3, maxValue: 4);
+
             try
             {
                 await _client.CreateGlobalApplicationCommandAsync(buttonCommand.Build());
                 await _client.CreateGlobalApplicationCommandAsync(globalCommand.Build());
                 await _client.CreateGlobalApplicationCommandAsync(menuCommand.Build());
+                await _client.CreateGlobalApplicationCommandAsync(mahjongCommand.Build());
             }
             catch (ApplicationCommandException e)
             {
@@ -135,7 +143,8 @@ namespace discordBot
 
             var commandData= name.Split('_');
 
-            switch(commandData[0])
+            //switch(commandData[0])
+            switch(name)
             {
                 case "first-global-command":
                     await command.RespondAsync($"You executed {command.Data.Name}");
@@ -149,8 +158,8 @@ namespace discordBot
                 case "mrfz":
                     await ToolBoxMain.ReadCommand(command, commandData[1]);
                     break;
-                case "mahj":
-                    await MahjongMain.ReadCommand(command, commandData[1]);
+                case "startgame":
+                    await MahjongMain.ReadCommand(command, "mahj_" + name);
                     break;
             }
 
