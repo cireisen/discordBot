@@ -29,7 +29,7 @@ namespace discordBot.Mahjong
             var embed = new EmbedBuilder()
             {
                 Title = "마작 어시스터 입니다.",
-                ThumbnailUrl = @"https://upload.wikimedia.org/wikipedia/en/a/aa/Arknights_icon.png",
+                ThumbnailUrl = @"https://pbs.twimg.com/profile_images/1118736457554964480/_G7Au64E_400x400.png",
                 Description = "아직 개발중"
             };
 

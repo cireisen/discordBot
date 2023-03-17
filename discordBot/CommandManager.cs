@@ -177,7 +177,7 @@ namespace discordBot
 
             var builder = new ComponentBuilder()
                 .WithButton("명일방주", "mrfz_main")
-                .WithButton("쓰레기게임", "trhg_main");
+                .WithButton("마작", "mahj_main");
             
 
             await command.RespondAsync(embed:  embed.Build() , components: builder.Build());
