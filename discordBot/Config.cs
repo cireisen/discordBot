@@ -9,7 +9,7 @@ namespace discordBot
     internal static class Config
     {
         public static string Token = "";
-        public static ulong ControlGuildID = 845134635725225994;
-        public static ulong ControlChannelID = 845134635725225997;
+        public static ulong ControlGuildID = 0;
+        public static ulong ControlChannelID = 0;
     }
 }
