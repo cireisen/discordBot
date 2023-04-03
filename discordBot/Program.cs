@@ -38,7 +38,8 @@ namespace discordBot // Note: actual namespace depends on the project name.
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Verbose,
-                GatewayIntents = GatewayIntents.All
+                GatewayIntents = GatewayIntents.All,
+                UseInteractionSnowflakeDate = false
             });
 
             _handler = new SuperHandler(_client);

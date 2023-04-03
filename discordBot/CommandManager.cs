@@ -77,37 +77,24 @@ namespace discordBot
         {
             switch (arg.Data.CustomId)
             {
-                case "menu1":
-                    var value = arg.Data.Values.First();
-                    var menu = new SelectMenuBuilder()
-                    {
-                        CustomId = "menu1",
-                        Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
-                        MaxValues = 1,
-                        MinValues = 1
-                    };
+                case "mahj_player":
+                case "mahj_style":
 
-                    menu.AddOption("Meh", "1", "Its not gaming.")
-                        .AddOption("Ish", "2", "Some would say that this is gaming.")
-                        .AddOption("Moderate", "3", "It could pass as gaming")
-                        .AddOption("Confirmed", "4", "We are gaming")
-                        .AddOption("Excellent", "5", "It is renowned as gaming nation wide", new Emoji("🔥"));
-
-                    //We use UpdateAsync to update the message and its original content and components.
-                    await arg.UpdateAsync(x =>
-                    {
-                        x.Content = $"Thank you {arg.User.Mention} for rating us {value}/5 on the gaming scale";
-                        x.Components = new ComponentBuilder().WithSelectMenu(menu).Build();
-                    });
-
-                    var embed = new EmbedBuilder();
-
-                    var buttons = new EmbedBuilder();
+                    //var value = arg.Data.Values.First();
+                    //var menu = new SelectMenuBuilder()
+                    //{
+                    //    CustomId = arg.Data.CustomId,
+                    //    Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
+                    //    MaxValues = 1,
+                    //    MinValues = 1
+                    //};
 
                     //await arg.UpdateAsync(x =>
                     //{
-                        
+                    //    x.Components = arg.Message.;
                     //});
+
+                    await arg.DeferAsync();
                     break;
             }
         }
@@ -187,7 +174,7 @@ namespace discordBot
                 Console.WriteLine(e.Message);
                 Console.WriteLine(Config.commandDivisionLine);
                 Console.WriteLine(e.StackTrace);
-                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(Config.commandDivisionLine); 
                 Console.ResetColor();
             }
 

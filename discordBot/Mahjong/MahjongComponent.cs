@@ -12,7 +12,10 @@ namespace discordBot.Mahjong
     internal class MahjongComponent
     {
         
-
+        /// <summary>
+        /// 마작 메인 임베드
+        /// </summary>
+        /// <returns></returns>
         public static EmbedBuilder CreateMahjongMainEmbed()
         {
             return new EmbedBuilder()
@@ -22,6 +25,11 @@ namespace discordBot.Mahjong
             };
         }
 
+        /// <summary>
+        /// 게임 정보 표시컴포넌트, 임베드
+        /// </summary>
+        /// <param name="gameHandler"></param>
+        /// <returns></returns>
         public static (Embed embed, MessageComponent component) CreateMainGameMsg(ulong gameHandler)
         {
             string filePath = Config.path + @$"mahjong\{gameHandler}.json";
@@ -110,7 +118,7 @@ namespace discordBot.Mahjong
                 .WithDescription($"{gameType} {wind} {rounds}국")
                 .AddField(fieldTon)
                 .AddField(fieldNan)
-                .AddField(fieldTable)
+                .AddField(fieldTable)   
                 .AddField(fieldSha);
 
             if(playerCount > 3)
@@ -123,7 +131,39 @@ namespace discordBot.Mahjong
             return (embedBuilder.Build(), component);
         }
 
-        public static MessageComponent CreateMainGameComponent(int playerCount)
+        public static MessageComponent CreateStartGameMenuComponent()
+        {
+            var playerMenuBuilder = new SelectMenuBuilder()
+                .WithPlaceholder("플레이어 수")
+                .WithCustomId("mahj_player")
+                .WithMinValues(1)
+                .WithMaxValues(1)
+                .AddOption("3인", "3")
+                .AddOption("4인", "4");
+
+            var styleMenuBuilder = new SelectMenuBuilder()
+                .WithPlaceholder("방식")
+                .WithCustomId("mahj_style")
+                .WithMinValues(1)
+                .WithMaxValues(1)
+                .AddOption("동풍전", "ton")
+                .AddOption("반장전", "nan");
+
+            var builder = new ComponentBuilder()
+                .WithSelectMenu(playerMenuBuilder, 1)
+                .WithSelectMenu(styleMenuBuilder, 2)
+                .WithButton("확인", "mahj_startgame", row: 3)
+                .AddRow(CreateBackwardComponent("start"));
+
+            return builder.Build();
+        }
+
+        /// <summary>
+        /// 동남서북 버튼 생성
+        /// </summary>
+        /// <param name="playerCount"></param>
+        /// <returns></returns>
+        private static MessageComponent CreateMainGameComponent(int playerCount)
         {
             ComponentBuilder builder = new ComponentBuilder()
                 .WithButton("동", "mahj_ton")
@@ -138,18 +178,36 @@ namespace discordBot.Mahjong
             return builder.Build();
         }
 
-        public static MessageComponent CreateUserComponent(string wind)
-        {
-            return new ComponentBuilder().WithButton("asdf", "").Build();
-        }
-
-        private static ActionRowBuilder CreateBackwardComponent()
+        /// <summary>
+        /// 이전, 처음 복귀
+        /// </summary>
+        /// <param name="moveTo"></param>
+        /// <returns></returns>
+        private static ActionRowBuilder CreateBackwardComponent(string moveTo)
         {
             ComponentBuilder builder = new ComponentBuilder()
-                .WithButton("뒤로가기", "mahj_back")
+                .WithButton("뒤로가기", $"mahj_back:{moveTo}")
                 .WithButton("처음으로", "mahj_first");
             
             return builder.ActionRows.First();
+        }
+
+        /// <summary>
+        /// 플레이어 정보 표시
+        /// </summary>
+        /// <param name="wind"></param>
+        /// <returns></returns>
+        public static MessageComponent CreatePlayerMenu(string wind)
+        {
+            ComponentBuilder builder = new ComponentBuilder()
+                .WithButton("리치", $"mahj_reach:{wind}")
+                .WithButton("론", $"mahj_ron:{wind}")
+                .WithButton("쯔모", $"mahj_tsumo:{wind}")
+                .WithButton("쵼보", $"mahj_chon:{wind}");
+
+            builder.AddRow(CreateBackwardComponent("main"));
+
+            return builder.Build();
         }
     }
 }
