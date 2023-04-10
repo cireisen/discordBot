@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace discordBot
 {
@@ -40,11 +41,19 @@ namespace discordBot
             menuCommand.WithName("createmenu");
             menuCommand.WithDescription("CreateMainMenu");
 
+            var mahjongCommand = new SlashCommandBuilder();
+
+            mahjongCommand.WithName("startgame");
+            mahjongCommand.WithDescription("마작 게임 시작");
+
+            mahjongCommand.AddOption("playercount", ApplicationCommandOptionType.Integer, "플레이어수", true, minValue: 3, maxValue: 4);
+
             try
             {
                 await _client.CreateGlobalApplicationCommandAsync(buttonCommand.Build());
                 await _client.CreateGlobalApplicationCommandAsync(globalCommand.Build());
                 await _client.CreateGlobalApplicationCommandAsync(menuCommand.Build());
+                await _client.CreateGlobalApplicationCommandAsync(mahjongCommand.Build());
             }
             catch (ApplicationCommandException e)
             {
@@ -68,37 +77,24 @@ namespace discordBot
         {
             switch (arg.Data.CustomId)
             {
-                case "menu1":
-                    var value = arg.Data.Values.First();
-                    var menu = new SelectMenuBuilder()
-                    {
-                        CustomId = "menu1",
-                        Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
-                        MaxValues = 1,
-                        MinValues = 1
-                    };
+                case "mahj_player":
+                case "mahj_style":
 
-                    menu.AddOption("Meh", "1", "Its not gaming.")
-                        .AddOption("Ish", "2", "Some would say that this is gaming.")
-                        .AddOption("Moderate", "3", "It could pass as gaming")
-                        .AddOption("Confirmed", "4", "We are gaming")
-                        .AddOption("Excellent", "5", "It is renowned as gaming nation wide", new Emoji("🔥"));
-
-                    //We use UpdateAsync to update the message and its original content and components.
-                    await arg.UpdateAsync(x =>
-                    {
-                        x.Content = $"Thank you {arg.User.Mention} for rating us {value}/5 on the gaming scale";
-                        x.Components = new ComponentBuilder().WithSelectMenu(menu).Build();
-                    });
-
-                    var embed = new EmbedBuilder();
-
-                    var buttons = new EmbedBuilder();
+                    //var value = arg.Data.Values.First();
+                    //var menu = new SelectMenuBuilder()
+                    //{
+                    //    CustomId = arg.Data.CustomId,
+                    //    Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
+                    //    MaxValues = 1,
+                    //    MinValues = 1
+                    //};
 
                     //await arg.UpdateAsync(x =>
                     //{
-                        
+                    //    x.Components = arg.Message.;
                     //});
+
+                    await arg.DeferAsync();
                     break;
             }
         }
@@ -110,23 +106,36 @@ namespace discordBot
             var info = id.Split('_');
 
             //SocketInteraction a = arg;
-
-            switch (info[0])
+            try
             {
-                case "main":
-                    break;
-                    //방주
-                case "mrfz":
-                    await ToolBoxMain.ReadCommand(arg, info[1]);
-                    break;
-                    //마작
-                case "mahj":
-                    await MahjongMain.ReadCommand(arg, info[1]);
-                    break;
+                switch (info[0])
+                {
+                    case "main":
+                        break;
+                        //방주
+                    case "mrfz":
+                        await ToolBoxMain.ReadCommand(arg, info[1]);
+                        break;
+                        //마작
+                    case "mahj":
+                        await MahjongMain.ReadCommand(arg, info[1]);
+                        break;
 
-            }
+                }
 
             await arg.RespondAsync(arg.Data.CustomId);
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine($"ErrorOccured while Execute {id} SlashCommand in {arg.GuildId}, {arg.ChannelId}");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.ResetColor();
+            }
         }
 
         private async Task client_SlashCommandExecuted(SocketSlashCommand command)
@@ -135,23 +144,38 @@ namespace discordBot
 
             var commandData= name.Split('_');
 
-            switch(commandData[0])
+            //switch(commandData[0])
+            try
             {
-                case "first-global-command":
-                    await command.RespondAsync($"You executed {command.Data.Name}");
-                    break;
-                case "buttontest":
-                    await ButtonTest(command);
-                    break;
-                case "createmenu":
-                    await CreateMenu(command);
-                    break;
-                case "mrfz":
-                    await ToolBoxMain.ReadCommand(command, commandData[1]);
-                    break;
-                case "mahj":
-                    await MahjongMain.ReadCommand(command, commandData[1]);
-                    break;
+                switch(name)
+                {
+                    case "first-global-command":
+                        await command.RespondAsync($"You executed {command.Data.Name}");
+                        break;
+                    case "buttontest":
+                        await ButtonTest(command);
+                        break;
+                    case "createmenu":
+                        await CreateMenu(command);
+                        break;
+                    case "mrfz":
+                        await ToolBoxMain.ReadCommand(command, commandData[1]);
+                        break;
+                    case "startgame":
+                        await MahjongMain.ReadCommand(command, name);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine($"ErrorOccured while Execute {name} SlashCommand in {command.GuildId}, {command.ChannelId}");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(Config.commandDivisionLine); 
+                Console.ResetColor();
             }
 
         }

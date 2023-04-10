@@ -6,37 +6,58 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Reflection.Emit;
+using System.IO;
+using Microsoft.VisualBasic.FileIO;
+using System.Runtime.InteropServices;
+using DiscordBotsList.Api.Internal;
 
 namespace discordBot.Mahjong
 {
     internal class MahjongMain
     {
+        /// <summary>
+        /// 마작 커맨드 읽기 구분_동작:데이터
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static async Task ReadCommand(SocketInteraction socket, string id)
         {
-            switch (id)
+            switch (id.Split(':')[0])
             {
                 case "main":
                     await ShowMain(socket);
                     break;
+                case "startmenu":
+                    await CreateMain(socket);
+                    break;
                 case "startgame":
-
+                    await StartGame(socket);
+                    break;
+                case "ton":
+                case "nan":
+                case "sha":
+                case "pe":
+                    await ShowPlayerMenu(socket, id);
+                    break;
+                case "back":
+                    string direction = id.Split(':')[1];
+                    await ChangeMessage(socket, direction);
                     break;
             }
         }
 
         public static async Task ShowMain(SocketInteraction command)
         {
-            var embed = new EmbedBuilder()
-            {
-                Title = "마작 어시스터 입니다.",
-                ThumbnailUrl = @"https://pbs.twimg.com/profile_images/1118736457554964480/_G7Au64E_400x400.png",
-                Description = "아직 개발중"
-            };
+            var embed = MahjongComponent.CreateMahjongMainEmbed()
+                .WithDescription("아직 개발중");
 
             embed.AddField("원하시는 기능의 버튼을 클릭해 주세요", "응애");
 
             var builder = new ComponentBuilder()
-                .WithButton("게임시작", "mahj_startgame");
+                .WithButton("게임시작", "mahj_startmenu");
 
             if (command.GetType() == typeof(SocketMessageComponent))
             {
@@ -53,11 +74,146 @@ namespace discordBot.Mahjong
             }
         }
 
+        public static async Task CreateMain(SocketInteraction command)
+        {
+            var embed = MahjongComponent.CreateMahjongMainEmbed()
+                .WithDescription("인원수와 방식을 선택해주세요.");
+
+            var component = MahjongComponent.CreateStartGameMenuComponent();
+
+            if (command.GetType() == typeof(SocketMessageComponent))
+            {
+                SocketMessageComponent msg = (SocketMessageComponent)command;
+                await msg.UpdateAsync(x =>
+                {
+                    x.Embed = embed.Build();
+                    x.Components = component;
+                });
+            }
+            else if (command.GetType() == typeof(SocketSlashCommand))
+            {
+                await command.RespondAsync("", new Embed[] { embed.Build() }, components: component, ephemeral: true);
+            }
+        }
+
         public static async Task StartGame(SocketInteraction command)
         {
             ulong userId = command.User.Id;
+            if (command.GetType() == typeof(SocketMessageComponent))
+            {
+                SocketMessageComponent msg = (SocketMessageComponent)command;
+                
+                var components = msg.Message.Components.ToList();
 
-            string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location + @$"\mahjong\{userId}";
+                string a = (components[0].Components.First() as SelectMenuComponent).ToString();
+                var s = msg.GetOriginalResponseAsync();
+
+                _ = a;
+                await msg.UpdateAsync(x =>
+                {
+                    //x.Embed = embed.Build();
+                    //x.Components = builder.Build();
+                });
+            }
+            else if (command.GetType() == typeof(SocketSlashCommand))
+            {
+                SocketSlashCommand slash = (SocketSlashCommand)command;
+
+                long count = (long)slash.Data.Options.First().Value;
+
+                CreateGame(userId, count);
+                var messageInfo = MahjongComponent.CreateMainGameMsg(userId);
+                await command.RespondAsync("", embed: messageInfo.embed, ephemeral: false, components: messageInfo.component);
+            }
+        }
+
+        public static async Task StartGame(SocketInteraction command, long count)
+        {
+            ulong userId = command.User.Id;
+            if (command.GetType() == typeof(SocketMessageComponent))
+            {
+                SocketMessageComponent msg = (SocketMessageComponent)command;
+                await msg.UpdateAsync(x =>
+                {
+                    //x.Embed = embed.Build();
+                    //x.Components = builder.Build();
+                });
+            }
+            else if (command.GetType() == typeof(SocketSlashCommand))
+            {
+                SocketSlashCommand slash = (SocketSlashCommand)command;
+
+                CreateGame(userId, count);
+
+                var gameinfo = MahjongComponent.CreateMainGameMsg(userId);
+
+                await command.RespondAsync("", embed: gameinfo.embed, ephemeral: false, components: gameinfo.component);
+            }
+        }
+
+        private static async Task ShowPlayerMenu(SocketInteraction command, string wind)
+        {
+            var messageComp = MahjongComponent.CreatePlayerMenu(wind);
+
+            if (command.GetType() == typeof(SocketMessageComponent))
+            {
+                SocketMessageComponent msg = (SocketMessageComponent)command;
+                await msg.UpdateAsync(x =>
+                {
+                    //x.Embed = embed.Build();
+                    x.Components = messageComp;
+                });
+            }
+            else if (command.GetType() == typeof(SocketSlashCommand))
+            {
+                SocketSlashCommand slash = (SocketSlashCommand)command;
+                
+
+                await command.RespondAsync("", ephemeral: false, components: messageComp);
+            }
+        }
+
+        private static async Task ShowMainGame(SocketInteraction command)
+        {
+            ulong userId = command.User.Id;
+            var messageComp = MahjongComponent.CreateMainGameMsg(userId);
+            if (command.GetType() == typeof(SocketMessageComponent))
+            {
+                SocketMessageComponent msg = (SocketMessageComponent)command;
+                await msg.UpdateAsync(x =>
+                {
+                    x.Embed = messageComp.embed;
+                    x.Components = messageComp.component;
+                });
+            }
+            else if (command.GetType() == typeof(SocketSlashCommand))
+            {
+                SocketSlashCommand slash = (SocketSlashCommand)command;
+
+
+                await command.RespondAsync("", ephemeral: false, components: messageComp.component);
+            }
+
+        }
+
+        private static async Task ChangeMessage(SocketInteraction command, string direction)
+        {
+            switch (direction)
+            {
+                case "start":
+                    await ShowMain(command);
+                    break;
+                case "main":
+                    await ShowMainGame(command);
+                    break;
+            }
+
+        }
+
+        private static void CreateGame(ulong gameHandler, long playerCount)
+        {
+
+            string filePath = Config.path + @$"mahjong\{gameHandler}.json";
             try
             {
                 if (File.Exists(filePath))
@@ -65,11 +221,23 @@ namespace discordBot.Mahjong
                     File.Delete(filePath);
                 }
 
-                //JsonWriter json = new JsonWriter();
-                //json.
 
+                JObject json = new JObject()
+                {
+                    new JProperty("PlayerCount", playerCount),
+                    new JProperty("GameType", "Han"), //동풍 "Ton", 반장"Han"
+                    new JProperty("Rounds", 1), //국
+                    new JProperty("Extra", 0), //본장
+                    new JProperty("Table", 0),
+                    new JProperty("Wind", "Ton"),
+                    new JProperty("Ton", 25000),
+                    new JProperty("Nan", 25000),
+                    new JProperty("Sha", 25000),
+                    new JProperty("Pe", 25000)
 
-                await command.RespondAsync("");
+                };
+
+                File.WriteAllText(filePath, json.ToString());
             }
             catch (Exception ex)
             {
@@ -78,11 +246,6 @@ namespace discordBot.Mahjong
             }
         }
 
-        public static Embed CreateMainGameEmbed(ulong gameHandler)
-        {
-
-
-            return new EmbedBuilder().Build();
-        }
+        
     }
 }
