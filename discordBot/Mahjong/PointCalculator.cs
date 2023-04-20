@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace discordBot.Mahjong
 {
-    internal class PointCalculator
+    internal static class PointCalculator
     {
+        public static void CalcPoint(int han, int fu)
+        {
+            
+        }
     }
 }
