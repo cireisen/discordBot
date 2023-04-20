@@ -12,6 +12,7 @@ using System.IO;
 using Microsoft.VisualBasic.FileIO;
 using System.Runtime.InteropServices;
 using DiscordBotsList.Api.Internal;
+using System.Security.AccessControl;
 
 namespace discordBot.Mahjong
 {
@@ -46,6 +47,45 @@ namespace discordBot.Mahjong
                     string direction = id.Split(':')[1];
                     await ChangeMessage(socket, direction);
                     break;
+                case "ron":
+                    string value = id.Split(":")[1];
+                    break;
+            }
+        }
+
+        public static async Task SelectMenuExecute(SocketMessageComponent socket, string id)
+        {
+            //switch (arg.Data.CustomId)
+            //{
+            //    case "mahj_player":
+            //    case "mahj_style":
+
+            //        //var value = arg.Data.Values.First();
+            //        //var menu = new SelectMenuBuilder()
+            //        //{
+            //        //    CustomId = arg.Data.CustomId,
+            //        //    Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
+            //        //    MaxValues = 1,
+            //        //    MinValues = 1
+            //        //};
+
+            //        //await arg.UpdateAsync(x =>
+            //        //{
+            //        //    x.Components = arg.Message.;
+            //        //});
+
+            //        await arg.DeferAsync();
+            //        break;
+            //}
+            switch (id.Split(':')[0])
+            {
+                case "player":
+                    
+                    ChangeGameOption(socket.User.Id, "PlayerCount", long.Parse(socket.Data.Values.First()));
+                    break;
+                case "style":
+                    ChangeGameOption(socket.User.Id, "GameStyle", socket.Data.Values.First());
+                    break;
             }
         }
 
@@ -71,11 +111,12 @@ namespace discordBot.Mahjong
             else if (command.GetType() == typeof(SocketSlashCommand))
             {
                 await command.RespondAsync("", new Embed[] { embed.Build() }, components: builder.Build(), ephemeral: true);
-            }
+            }   
         }
 
         public static async Task CreateMain(SocketInteraction command)
         {
+            CreateGame(command.User.Id, 3, "han");
             var embed = MahjongComponent.CreateMahjongMainEmbed()
                 .WithDescription("인원수와 방식을 선택해주세요.");
 
@@ -119,35 +160,13 @@ namespace discordBot.Mahjong
             {
                 SocketSlashCommand slash = (SocketSlashCommand)command;
 
-                long count = (long)slash.Data.Options.First().Value;
+                var values = slash.Data.Options.ToDictionary(data => data.Name);
+                long count = (long)values["playercount"].Value;
+                string style = (string)values["gamstyle"].Value;
 
-                CreateGame(userId, count);
+                CreateGame(userId, count, style);
                 var messageInfo = MahjongComponent.CreateMainGameMsg(userId);
                 await command.RespondAsync("", embed: messageInfo.embed, ephemeral: false, components: messageInfo.component);
-            }
-        }
-
-        public static async Task StartGame(SocketInteraction command, long count)
-        {
-            ulong userId = command.User.Id;
-            if (command.GetType() == typeof(SocketMessageComponent))
-            {
-                SocketMessageComponent msg = (SocketMessageComponent)command;
-                await msg.UpdateAsync(x =>
-                {
-                    //x.Embed = embed.Build();
-                    //x.Components = builder.Build();
-                });
-            }
-            else if (command.GetType() == typeof(SocketSlashCommand))
-            {
-                SocketSlashCommand slash = (SocketSlashCommand)command;
-
-                CreateGame(userId, count);
-
-                var gameinfo = MahjongComponent.CreateMainGameMsg(userId);
-
-                await command.RespondAsync("", embed: gameinfo.embed, ephemeral: false, components: gameinfo.component);
             }
         }
 
@@ -210,7 +229,15 @@ namespace discordBot.Mahjong
 
         }
 
-        private static void CreateGame(ulong gameHandler, long playerCount)
+        private static async Task Ron(SocketInteraction command, string ronPlayer, string targetPlayer)
+        {
+            //var builder = new ModalBuilder()
+            //    .WithTitle("론")
+            //    .WithCustomId("ron_modal")
+            //    .AddComponents()
+        }
+
+        private static void CreateGame(ulong gameHandler, long playerCount, string gameType)
         {
 
             string filePath = Config.path + @$"mahjong\{gameHandler}.json";
@@ -225,7 +252,7 @@ namespace discordBot.Mahjong
                 JObject json = new JObject()
                 {
                     new JProperty("PlayerCount", playerCount),
-                    new JProperty("GameType", "Han"), //동풍 "Ton", 반장"Han"
+                    new JProperty("GameType", gameType), //동풍 "Ton", 반장"Han"
                     new JProperty("Rounds", 1), //국
                     new JProperty("Extra", 0), //본장
                     new JProperty("Table", 0),
@@ -246,6 +273,39 @@ namespace discordBot.Mahjong
             }
         }
 
+        private static void ChangeGameOption(ulong gameHandler, string option, object value)
+        {
+            string filePath = Config.path + @$"mahjong\{gameHandler}.json";
+
+            try
+            {
+                string jsonString = "";
+                using (StreamReader file = File.OpenText(filePath))
+                {
+                    using (JsonTextReader reader = new JsonTextReader(file))
+                    {
+
+                        JObject json = (JObject)JToken.ReadFrom(reader);
+                        try
+                        {
+                            json[option] = JToken.FromObject(value);
+                        }
+                        catch
+                        {
+
+                        }
+                        jsonString = json.ToString();
+
+                    }
+                    File.WriteAllText(filePath, jsonString);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Mahjong Change Option Error.");
+                Console.WriteLine(ex.Message);
+            }
+        }
         
     }
 }

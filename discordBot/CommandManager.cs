@@ -46,7 +46,27 @@ namespace discordBot
             mahjongCommand.WithName("startgame");
             mahjongCommand.WithDescription("마작 게임 시작");
 
-            mahjongCommand.AddOption("playercount", ApplicationCommandOptionType.Integer, "플레이어수", true, minValue: 3, maxValue: 4);
+            mahjongCommand
+                .AddOption(new SlashCommandOptionBuilder()
+                .WithName("playercount")
+                .WithType(ApplicationCommandOptionType.Integer)
+                .WithDescription("플레이어수")
+                .WithRequired(true)
+                .WithMinValue(3)
+                .WithMaxValue(4)
+            );
+
+            mahjongCommand
+                .AddOption(new SlashCommandOptionBuilder()
+                .WithName("gamestyle")
+                .WithType(ApplicationCommandOptionType.String)
+                .WithDescription("게임 종류")
+                .WithRequired(true)
+                .AddChoice("동풍전", "ton")
+                .AddChoice("반장전", "han")
+            );
+
+            
 
             try
             {
@@ -75,28 +95,64 @@ namespace discordBot
 
         private async Task _client_SelectMenuExecuted(SocketMessageComponent arg)
         {
-            switch (arg.Data.CustomId)
+            string id = arg.Data.CustomId;
+
+            var info = id.Split('_');
+
+            //SocketInteraction a = arg;
+            try
             {
-                case "mahj_player":
-                case "mahj_style":
+                switch (info[0])
+                {
+                    case "main":
+                        break;
+                    //방주
+                    case "mrfz":
+                        //await ToolBoxMain.ReadCommand(arg, info[1]);
+                        break;
+                    //마작
+                    case "mahj":
+                        await MahjongMain.SelectMenuExecute(arg, info[1]);
+                        break;
 
-                    //var value = arg.Data.Values.First();
-                    //var menu = new SelectMenuBuilder()
-                    //{
-                    //    CustomId = arg.Data.CustomId,
-                    //    Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
-                    //    MaxValues = 1,
-                    //    MinValues = 1
-                    //};
+                }
 
-                    //await arg.UpdateAsync(x =>
-                    //{
-                    //    x.Components = arg.Message.;
-                    //});
-
-                    await arg.DeferAsync();
-                    break;
+                await arg.RespondAsync(arg.Data.CustomId);
             }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine($"ErrorOccured while Execute {id} SlashCommand in {arg.GuildId}, {arg.ChannelId}");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.ResetColor();
+            }
+
+            //switch (arg.Data.CustomId)
+            //{
+            //    case "mahj_player":
+            //    case "mahj_style":
+
+            //        //var value = arg.Data.Values.First();
+            //        //var menu = new SelectMenuBuilder()
+            //        //{
+            //        //    CustomId = arg.Data.CustomId,
+            //        //    Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
+            //        //    MaxValues = 1,
+            //        //    MinValues = 1
+            //        //};
+
+            //        //await arg.UpdateAsync(x =>
+            //        //{
+            //        //    x.Components = arg.Message.;
+            //        //});
+
+            //        await arg.DeferAsync();
+            //        break;
+            //}
         }
 
         private async Task client_ButtonExecuted(SocketMessageComponent arg)
