@@ -81,10 +81,10 @@ namespace discordBot.Mahjong
             {
                 case "player":
                     
-                    ChangeGameOption(socket.User.Id, "PlayerCount", long.Parse(socket.Data.Values.First()));
+                    MahjongGameControl.ChangeGameOption(socket.User.Id, "PlayerCount", long.Parse(socket.Data.Values.First()));
                     break;
                 case "style":
-                    ChangeGameOption(socket.User.Id, "GameStyle", socket.Data.Values.First());
+                    MahjongGameControl.ChangeGameOption(socket.User.Id, "GameStyle", socket.Data.Values.First());
                     break;
             }
         }
@@ -273,39 +273,7 @@ namespace discordBot.Mahjong
             }
         }
 
-        private static void ChangeGameOption(ulong gameHandler, string option, object value)
-        {
-            string filePath = Config.path + @$"mahjong\{gameHandler}.json";
-
-            try
-            {
-                string jsonString = "";
-                using (StreamReader file = File.OpenText(filePath))
-                {
-                    using (JsonTextReader reader = new JsonTextReader(file))
-                    {
-
-                        JObject json = (JObject)JToken.ReadFrom(reader);
-                        try
-                        {
-                            json[option] = JToken.FromObject(value);
-                        }
-                        catch
-                        {
-
-                        }
-                        jsonString = json.ToString();
-
-                    }
-                    File.WriteAllText(filePath, jsonString);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Mahjong Change Option Error.");
-                Console.WriteLine(ex.Message);
-            }
-        }
+        
         
     }
 }
