@@ -13,11 +13,18 @@ using Microsoft.VisualBasic.FileIO;
 using System.Runtime.InteropServices;
 using DiscordBotsList.Api.Internal;
 using System.Security.AccessControl;
+using Discord.Interactions;
 
 namespace discordBot.Mahjong
 {
-    internal class MahjongMain
+    public class MahjongMain : InteractionModuleBase<SocketInteractionContext>
     {
+        public InteractionService SlashCommands { get; set; }
+        private CommandManager _manager;
+        public MahjongMain(CommandManager manager)
+        {
+            _manager = manager;
+        }
         /// <summary>
         /// 마작 커맨드 읽기 구분_동작:데이터
         /// </summary>
@@ -53,34 +60,17 @@ namespace discordBot.Mahjong
             }
         }
 
+        /// <summary>
+        /// Mahj Selectmenu ValueChanged
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static async Task SelectMenuExecute(SocketMessageComponent socket, string id)
         {
-            //switch (arg.Data.CustomId)
-            //{
-            //    case "mahj_player":
-            //    case "mahj_style":
-
-            //        //var value = arg.Data.Values.First();
-            //        //var menu = new SelectMenuBuilder()
-            //        //{
-            //        //    CustomId = arg.Data.CustomId,
-            //        //    Placeholder = $"{(arg.Message.Components.First().Components.First() as SelectMenuComponent).Options.FirstOrDefault(x => x.Value == value).Label}",
-            //        //    MaxValues = 1,
-            //        //    MinValues = 1
-            //        //};
-
-            //        //await arg.UpdateAsync(x =>
-            //        //{
-            //        //    x.Components = arg.Message.;
-            //        //});
-
-            //        await arg.DeferAsync();
-            //        break;
-            //}
             switch (id.Split(':')[0])
             {
                 case "player":
-                    
                     ChangeGameOption(socket.User.Id, "PlayerCount", long.Parse(socket.Data.Values.First()));
                     break;
                 case "style":
@@ -89,6 +79,11 @@ namespace discordBot.Mahjong
             }
         }
 
+        /// <summary>
+        /// Show MahjongMenu
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static async Task ShowMain(SocketInteraction command)
         {
             var embed = MahjongComponent.CreateMahjongMainEmbed()
@@ -114,6 +109,11 @@ namespace discordBot.Mahjong
             }   
         }
 
+        /// <summary>
+        /// Show StartMahj Options
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static async Task CreateMain(SocketInteraction command)
         {
             CreateGame(command.User.Id, 3, "han");
@@ -137,6 +137,11 @@ namespace discordBot.Mahjong
             }
         }
 
+        /// <summary>
+        /// CreateGame
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static async Task StartGame(SocketInteraction command)
         {
             ulong userId = command.User.Id;
@@ -305,6 +310,12 @@ namespace discordBot.Mahjong
                 Console.WriteLine($"Mahjong Change Option Error.");
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        [SlashCommand("test", "응애")]
+        public async Task Test()
+        {
+            await RespondAsync("구웨엑");
         }
         
     }
