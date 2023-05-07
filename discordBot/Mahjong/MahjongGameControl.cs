@@ -12,7 +12,8 @@ namespace discordBot.Mahjong
 {
     internal static class MahjongGameControl
     {
-        
+        internal enum WinType { Ron, Tsumo };
+        private static List<string> windList = new List<string>(new string[] { "Ton", "Nan", "Sha", "Pe" });
         /// <summary>
         /// 점수 이동
         /// </summary>
@@ -67,42 +68,48 @@ namespace discordBot.Mahjong
         /// <param name="target"></param>
         /// <param name="pan"></param>
         /// <param name="fu"></param>
-        public static void PlayerRon(ulong id, string wind, string target, int pan, int fu)
+        public static void PlayerRon(ulong gameHandler, string wind, string target, int playerCount, int pan, int fu)
         {
-            string path = Config.path;
-            string filePath = path + @"resource\Config.json";
+            string filePath = Config.path + @$"mahjong\{gameHandler}.json";
             string jsonString = "";
-            using (StreamReader file = File.OpenText(filePath))
+
+            int mainPoint = 0;
+            int targetPoint = 0;
+
+            try
             {
-                using (JsonTextReader reader = new JsonTextReader(file))
+                using (StreamReader file = File.OpenText(filePath))
                 {
-
-                    JObject json = (JObject)JToken.ReadFrom(reader);
-                    try
-                    {
-                        int mainPoint = (int)json[wind];
-                        int targetPoint = (int)json[target];
-
-                        //mainPoint += point;
-                        //targetPoint += point;
-
-                        json[wind] = mainPoint;
-                        json[target] = targetPoint;
-
-                        jsonString = json.ToString();
-                    }
-                    catch
+                    using (JsonTextReader reader = new JsonTextReader(file))
                     {
 
+                        JObject json = (JObject)JToken.ReadFrom(reader);
+                        try
+                        {
+                            mainPoint = (int)json[wind];
+                            targetPoint = (int)json[target];
+
+                            int point = PointCalculator.CalcPoint(pan, fu, playerCount, wind == "Ton", WinType.Ron);
+
+                            mainPoint += point;
+                            targetPoint -= point;
+
+                            json[wind] = mainPoint;
+                            json[target] = targetPoint;
+
+                            jsonString = json.ToString();
+                        }
+                        catch
+                        {
+
+                        }
                     }
-
-
                 }
+                File.WriteAllText(filePath, jsonString);
             }
-
-            using (StreamWriter file = new StreamWriter(filePath))
+            catch
             {
-                file.Write(jsonString);
+                
             }
         }
 
@@ -113,9 +120,57 @@ namespace discordBot.Mahjong
         /// <param name="wind"></param>
         /// <param name="pan"></param>
         /// <param name="fu"></param>
-        public static void PlayerTsumo(ulong id, string wind, int pan, int fu)
+        public static void PlayerTsumo(ulong gameHandler, string wind, int playerCount, int pan, int fu)
         {
+            string filePath = Config.path + @$"mahjong\{gameHandler}.json";
+            string jsonString = "";
 
+            int mainPoint = 0;
+            int targetPoint = 0;
+
+            try
+            {
+
+
+                using (StreamReader file = File.OpenText(filePath))
+                {
+                    using (JsonTextReader reader = new JsonTextReader(file))
+                    {
+                        int point = PointCalculator.CalcPoint(pan, fu, playerCount, wind == "Ton", WinType.Ron);
+                        JObject json = (JObject)JToken.ReadFrom(reader);
+                        try
+                        {
+                            for (int i = 0; i < playerCount)
+                            {
+
+
+                                foreach (string target in listWind)
+                                    mainPoint = (int)json[wind];
+                                targetPoint = (int)json[target];
+
+
+
+                                mainPoint += point;
+                                targetPoint -= point;
+
+                                json[wind] = mainPoint;
+                                json[target] = targetPoint;
+
+                                jsonString = json.ToString();
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+                File.WriteAllText(filePath, jsonString);
+            }
+            catch
+            {
+
+            }
         }
 
         /// <summary>
@@ -144,6 +199,40 @@ namespace discordBot.Mahjong
                     break;
                 case 4:
                     break;
+            }
+        }
+
+        public  static void ChangeGameOption(ulong gameHandler, string option, object value)
+        {
+            string filePath = Config.path + @$"mahjong\{gameHandler}.json";
+
+            try
+            {
+                string jsonString = "";
+                using (StreamReader file = File.OpenText(filePath))
+                {
+                    using (JsonTextReader reader = new JsonTextReader(file))
+                    {
+
+                        JObject json = (JObject)JToken.ReadFrom(reader);
+                        try
+                        {
+                            json[option] = JToken.FromObject(value);
+                        }
+                        catch
+                        {
+
+                        }
+                        jsonString = json.ToString();
+
+                    }
+                }
+                File.WriteAllText(filePath, jsonString);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Mahjong Change Option Error.");
+                Console.WriteLine(ex.Message);
             }
         }
     }
