@@ -13,7 +13,7 @@ namespace discordBot.Mahjong
     internal static class MahjongGameControl
     {
         internal enum WinType { Ron, Tsumo };
-        private static List<string> windList = new List<string>(new string[] { "Ton", "Nan", "Sha", "Pe" });
+        private static List<string> listWind = new List<string>(new string[] { "Ton", "Nan", "Sha", "Pe" });
         /// <summary>
         /// 점수 이동
         /// </summary>
@@ -140,12 +140,14 @@ namespace discordBot.Mahjong
                         JObject json = (JObject)JToken.ReadFrom(reader);
                         try
                         {
-                            for (int i = 0; i < playerCount)
+                            for (int i = 0; i < playerCount; i++)
                             {
-
-
-                                foreach (string target in listWind)
-                                    mainPoint = (int)json[wind];
+                                string target = listWind[i];
+                                if(wind == target)
+                                {
+                                    continue;
+                                }
+                                mainPoint = (int)json[wind];
                                 targetPoint = (int)json[target];
 
 
@@ -155,6 +157,7 @@ namespace discordBot.Mahjong
 
                                 json[wind] = mainPoint;
                                 json[target] = targetPoint;
+
 
                                 jsonString = json.ToString();
                             }

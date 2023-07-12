@@ -209,5 +209,33 @@ namespace discordBot.Mahjong
 
             return builder.Build();
         }
+
+        public static Modal CreateWinModal(string winType)
+        {
+            string title = "";
+
+            switch(winType)
+            {
+                case "tsumo":
+                    title = "쯔모";
+                    break;
+                case "ron":
+                    title = "론";
+                    break;
+            }
+
+            var builder = new ModalBuilder()
+                .WithTitle(title)
+                .WithCustomId("mahj_" + winType)
+                .AddTextInput("판수", "han", TextInputStyle.Short, "판수", required: true)
+                .AddTextInput("부수", "fu", TextInputStyle.Short, "5판부터는 0입력", required: true);
+
+            if(winType == "ron")
+            {
+                builder.AddTextInput("방총자", "lose", TextInputStyle.Short, "동,서,남,북", required: true);
+            }
+
+            return builder.Build();
+        }
     }
 }

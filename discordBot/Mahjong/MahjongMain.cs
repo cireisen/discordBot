@@ -26,6 +26,8 @@ namespace discordBot.Mahjong
         /// <returns></returns>
         public static async Task ReadCommand(SocketInteraction socket, string id)
         {
+            string value = id.Split(":")[1];
+
             switch (id.Split(':')[0])
             {
                 case "main":
@@ -48,7 +50,10 @@ namespace discordBot.Mahjong
                     await ChangeMessage(socket, direction);
                     break;
                 case "ron":
-                    string value = id.Split(":")[1];
+                    await PlayerRon(socket, value);
+                    break;
+                case "tsumo":
+                    await PlayerTsumo(socket, value);
                     break;
             }
         }
@@ -229,12 +234,24 @@ namespace discordBot.Mahjong
 
         }
 
-        private static async Task Ron(SocketInteraction command, string ronPlayer, string targetPlayer)
+        private static async Task PlayerRon(SocketInteraction command, string ronPlayer, string targetPlayer)
         {
-            //var builder = new ModalBuilder()
-            //    .WithTitle("론")
-            //    .WithCustomId("ron_modal")
-            //    .AddComponents()
+            var modal = MahjongComponent.CreateWinModal("ron");
+
+            command.RespondWithModalAsync(modal);
+        }
+
+        private static async Task PlayerRon(SocketInteraction command, string commandValue)
+        {
+            var splitValue = commandValue.Split(',');
+            await PlayerRon(command, splitValue[0], splitValue[1]);
+        }
+
+        private static async Task PlayerTsumo(SocketInteraction command, string winPlayer)
+        {
+            var modal = MahjongComponent.CreateWinModal("tsumo");
+
+            command.RespondWithModalAsync(modal);
         }
 
         private static void CreateGame(ulong gameHandler, long playerCount, string gameType)
