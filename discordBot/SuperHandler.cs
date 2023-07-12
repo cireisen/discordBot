@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,13 +12,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace discordBot
 {
     internal class SuperHandler
     {
         private readonly DiscordSocketClient _client;
-        private CommandService _command;
+        private InteractionService _command;
         private IServiceProvider _services;
         private DiscordBotListHandler _discordBotListHandler;
 
@@ -30,18 +32,14 @@ namespace discordBot
 
         public async Task StartBotAsync()
         {
-            _command = new CommandService(new CommandServiceConfig
-            {
-                LogLevel = Discord.LogSeverity.Verbose
-            });
-
             _services = new ServiceCollection()
                 .AddSingleton(_client)
-                .AddSingleton(_command)
-                .AddSingleton<InteractiveService>()
+                .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+                .AddSingleton<CommandManager>()
                 .BuildServiceProvider();
 
-            await _command.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+            _command = _services.GetRequiredService<InteractionService>();
+            _command.Log += Log;
 
             _client.Ready += Ready;
             _client.MessageReceived += HandleCommandAsync;
@@ -57,10 +55,8 @@ namespace discordBot
 
         private async Task Ready()
         {
-            CommandManager manager = new CommandManager(_client);
-            manager.CreateSlashCommands();
-            manager.SetCommandAction();
-            await _discordBotListHandler.UpdateAsync();
+            await _services.GetService<CommandManager>().InitializeCommand();
+            await _command.RegisterCommandsGloballyAsync(true);
         }
 
         private async Task LeftAsync(SocketGuild arg)
@@ -110,67 +106,6 @@ namespace discordBot
             
             Console.WriteLine(msg.Content);
             Console.WriteLine(msg.Author.ToString());
-            //#region Prefix Management
-            //if (!Config.Bot.PrefixDictionary.ContainsKey(context.Guild.Id))
-            //{
-            //    Config.Bot.PrefixDictionary.Add(context.Guild.Id, "$");
-            //    Config.Saave();
-            //}
-            //#endregion
-
-            #region Command Management
-            if (msg.HasMentionPrefix(_client.CurrentUser, ref argPos))
-            {
-                using (context.Channel.EnterTypingState())
-                {
-
-                    try
-                    {
-                        var result = await _command.ExecuteAsync(context, argPos, _services);
-                        if (!result.IsSuccess)
-                        {
-                            Console.WriteLine(result.ErrorReason + $" at {context.Guild.Name}");    
-                            switch (result.Error)
-                            {
-                                case CommandError.UnknownCommand:
-                                    {
-                                        var guildEmote = Emote.Parse("<:unknowscmd:461157571701506049>");
-                                        await msg.AddReactionAsync(guildEmote);
-                                        break;
-                                    }
-                                case CommandError.BadArgCount:
-                                    {
-                                        await context.Channel.SendMessageAsync(
-                                            "You are suppose to pass in a parameter with this" +
-                                            " command. type `help [command name]` for help");
-                                        break;
-                                    }
-                                case CommandError.UnmetPrecondition:
-                                    {
-                                        await context.Channel.SendMessageAsync(
-                                            "You can not use this command at the moment.\nReason: " +
-                                            result.ErrorReason);
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        await context.Channel.SendMessageAsync(result.Error.ToString());
-                                        break;
-                                    }
-                            }
-                        }
-
-                    }
-                    catch (Exception e)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine(e.Message);
-                        Console.ResetColor();
-                    }
-                }
-            }
-            
-            #endregion
 
             if(msg.Content.Contains("과누"))
             {
@@ -212,19 +147,6 @@ namespace discordBot
             {
                 
             }
-        }
-
-        private async Task BroadcastUpdate(Embed embed)
-        {
-            //foreach (var data in UpdateReceivers.Patches)
-            //{
-            //    await _client.GetGuild(data.GuildId).GetTextChannel(data.ChannelId).SendMessageAsync(embed: embed);
-            //}
-        }
-
-        private async Task AddSlashCommand()
-        {
-            
         }
     }
 }

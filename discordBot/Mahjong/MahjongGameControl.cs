@@ -34,7 +34,7 @@ namespace discordBot.Mahjong
                     JObject json = (JObject)JToken.ReadFrom(reader);
                     try
                     {
-                        int mainPoint = (int)json[wind];
+                        int mainPoint = (int)   json[wind];
                         int targetPoint = (int)json[target];
 
                         mainPoint += point;

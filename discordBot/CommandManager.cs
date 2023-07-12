@@ -10,18 +10,31 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace discordBot
 {
-    internal class CommandManager
+    public class CommandManager
     {
+        private readonly InteractionService _commands;
         private readonly DiscordSocketClient _client;
-        public CommandManager(DiscordSocketClient client) 
+        private readonly IServiceProvider _services;
+        public CommandManager(DiscordSocketClient client, InteractionService commands, IServiceProvider services) 
         {
             _client = client;
+            _commands = commands;
+            _services = services;
+        }
+
+        public async Task InitializeCommand()
+        {
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+
+            CreateSlashCommands();
+            SetCommandAction();
         }
 
         public async void CreateSlashCommands()
@@ -75,7 +88,7 @@ namespace discordBot
                 await _client.CreateGlobalApplicationCommandAsync(menuCommand.Build());
                 await _client.CreateGlobalApplicationCommandAsync(mahjongCommand.Build());
             }
-            catch (ApplicationCommandException e)
+            catch (HttpException e)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 var json = JsonConvert.SerializeObject(e.Errors, Formatting.Indented);
@@ -88,9 +101,24 @@ namespace discordBot
 
         public async void SetCommandAction()
         {
+            _client.InteractionCreated += HandleInteraction;
+
             _client.SlashCommandExecuted += client_SlashCommandExecuted;
             _client.ButtonExecuted += client_ButtonExecuted;
             _client.SelectMenuExecuted += _client_SelectMenuExecuted;
+        }
+
+        private async Task HandleInteraction(SocketInteraction arg)
+        {
+            try
+            {
+                var ctx = new SocketInteractionContext(_client, arg);
+                await _commands.ExecuteCommandAsync(ctx, _services);
+            }
+            catch
+            {
+
+            }
         }
 
         private async Task _client_SelectMenuExecuted(SocketMessageComponent arg)
@@ -116,7 +144,6 @@ namespace discordBot
                         break;
 
                 }
-
                 await arg.RespondAsync(arg.Data.CustomId);
             }
             catch (Exception e)

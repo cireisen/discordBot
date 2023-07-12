@@ -48,6 +48,7 @@ namespace discordBot // Note: actual namespace depends on the project name.
             await _client.LoginAsync(TokenType.Bot, botToken);
             await _client.StartAsync();
             await _client.SetGameAsync("testing", null, ActivityType.Listening);
+
             await ConsoleRead();
             await Task.Delay(-1);
         }
