@@ -35,7 +35,9 @@ namespace discordBot.Mahjong
         {
             string value = "";
 
-            switch (id.Split(':')[0])
+            string command = id.Split(':')[0];
+
+            switch (command)
             {
                 case "main":
                     await ShowMain(socket);
@@ -57,12 +59,9 @@ namespace discordBot.Mahjong
                     await ChangeMessage(socket, direction);
                     break;
                 case "ron":
-                    value = id.Split(":")[1];
-                    await PlayerRon(socket, value);
-                    break;
                 case "tsumo":
                     value = id.Split(":")[1];
-                    await PlayerTsumo(socket, value);
+                    await PlayerWin(socket, command, value);
                     break;
             }
         }
@@ -89,10 +88,14 @@ namespace discordBot.Mahjong
 
         public static async Task ModalSubmitted(SocketModal socket, string id)
         {
+            var data = socket.Data.Components;
+
+            _ = data;
+
+
             switch (id.Split(':')[0])
             {
                 case "ron":
-
                     break;
                 case "tsumo":
                     
@@ -255,19 +258,13 @@ namespace discordBot.Mahjong
 
         }
 
-        private static async Task PlayerRon(SocketInteraction command, string ronPlayer)
+        private static async Task PlayerWin(SocketInteraction command, string winType, string winPlayer)
         {
-            var modal = MahjongComponent.CreateWinModal("ron_" + ronPlayer);
+            var modal = MahjongComponent.CreateWinModal(winType, winPlayer);
 
             command.RespondWithModalAsync(modal);
         }
 
-        private static async Task PlayerTsumo(SocketInteraction command, string winPlayer)
-        {
-            var modal = MahjongComponent.CreateWinModal("tsumo");
-
-            command.RespondWithModalAsync(modal);
-        }
 
         private static void CreateGame(ulong gameHandler, long playerCount, string gameType)
         {

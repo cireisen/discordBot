@@ -92,8 +92,8 @@ namespace discordBot
                 return;
             }
             
-            Console.WriteLine(msg.Content);
-            Console.WriteLine(msg.Author.ToString());
+            //Console.WriteLine(msg.Content);
+            //Console.WriteLine(msg.Author.ToString());
 
             if(msg.Content.Contains("과누"))
             {

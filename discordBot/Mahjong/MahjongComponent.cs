@@ -210,7 +210,7 @@ namespace discordBot.Mahjong
             return builder.Build();
         }
 
-        public static Modal CreateWinModal(string winType)
+        public static Modal CreateWinModal(string winType, string winPlayer)
         {
             string title = "";
 
@@ -226,7 +226,7 @@ namespace discordBot.Mahjong
 
             var builder = new ModalBuilder()
                 .WithTitle(title)
-                .WithCustomId("mahj_" + winType)
+                .WithCustomId("mahj_" + winType + ":" + winPlayer)
                 .AddTextInput("판수", "han", TextInputStyle.Short, "판수", required: true)
                 .AddTextInput("부수", "fu", TextInputStyle.Short, "부수", required: false);
 
