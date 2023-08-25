@@ -17,22 +17,27 @@ namespace discordBot.Arknights
                 case "main":
                     await ShowMain(socket);
                     break;
+                case "dpscalc":
+                    break;
+                case "roguelike":
+
+                    break;
             }
         }
 
         public static async Task ShowMain(SocketInteraction command)
         {
-            var embed = new EmbedBuilder()
+            var embed = new EmbedBuilder()  
             {
                 Title = "명일방주 툴박스 입니다.",
                 ThumbnailUrl = @"https://upload.wikimedia.org/wikipedia/en/a/aa/Arknights_icon.png",
-                Description = "아직 개발중"
+                Description = "아직 개발중"  
             };
 
             embed.AddField("원하시는 기능의 버튼을 클릭해 주세요", "응애");
 
             var builder = new ComponentBuilder()
-                .WithButton("DPS계산기", "mrfz_dpscalc");
+                .WithButton("유물 검색기", "mrfz_relicfinder");
 
             if(command.GetType() == typeof(SocketMessageComponent))
             {
@@ -47,6 +52,14 @@ namespace discordBot.Arknights
             {
                 await command.RespondAsync("", new Embed[] { embed.Build()}, components: builder.Build());
             }
+        }
+
+        public static async Task ShowRogueLikeMain(SocketInteraction command)
+        {
+            var embed = new EmbedBuilder()
+            {
+
+            };
         }
     }
 }
