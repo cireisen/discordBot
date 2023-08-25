@@ -228,7 +228,7 @@ namespace discordBot.Mahjong
                 .WithTitle(title)
                 .WithCustomId("mahj_" + winType)
                 .AddTextInput("판수", "han", TextInputStyle.Short, "판수", required: true)
-                .AddTextInput("부수", "fu", TextInputStyle.Short, "5판부터는 0입력", required: true);
+                .AddTextInput("부수", "fu", TextInputStyle.Short, "부수", required: false);
 
             if(winType == "ron")
             {

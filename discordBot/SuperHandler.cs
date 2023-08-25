@@ -86,18 +86,6 @@ namespace discordBot
             var context = new SocketCommandContext(_client, msg);
             var argPos = 0;
 
-            #region Dota Update
-
-            //var embed = s.Embeds.FirstOrDefault();
-            //if (s.Channel.Id == 437635625567649804 && s.Author.IsWebhook)
-            //{
-            //    if (embed?.Author?.Name.StartsWith("Dota") == true)
-            //    {
-            //        await BroadcastUpdate(embed);
-            //    }
-            //}
-
-            #endregion
 
             if (s.Author.IsBot)
             {

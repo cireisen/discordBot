@@ -106,6 +106,44 @@ namespace discordBot
             _client.SlashCommandExecuted += client_SlashCommandExecuted;
             _client.ButtonExecuted += client_ButtonExecuted;
             _client.SelectMenuExecuted += _client_SelectMenuExecuted;
+            _client.ModalSubmitted += _client_ModalSubmitted;
+        }
+
+        private async Task _client_ModalSubmitted(SocketModal arg)
+        {
+            string id = arg.Data.CustomId;
+
+            var info = id.Split('_');
+
+            try
+            {
+                switch (info[0])
+                {
+                    case "main":
+                        break;
+                    //방주
+                    case "mrfz":
+                        //await ToolBoxMain.ReadCommand(arg, info[1]);
+                        break;
+                    //마작
+                    case "mahj":
+                        await MahjongMain.ModalSubmitted(arg, info[1]);
+                        break;
+
+                }
+                await arg.RespondAsync(arg.Data.CustomId);
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine($"ErrorOccured while Execute {arg.Data.CustomId} ModalSubmit in {arg.GuildId}, {arg.ChannelId}");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine(Config.commandDivisionLine);
+                Console.ResetColor();
+            }
         }
 
         private async Task HandleInteraction(SocketInteraction arg)
@@ -206,7 +244,7 @@ namespace discordBot
 
                 }
 
-            await arg.RespondAsync(arg.Data.CustomId);
+            //await arg.RespondAsync(arg.Data.CustomId);
             }
             catch (Exception e)
             {
